@@ -47,7 +47,7 @@ function ChannelRight({ selectedUser, userData, room }) {
   
       console.log('Parsed date:', receivedDate);
       if (!isNaN(receivedDate.getTime())) {
-        message.createdAt = receivedDate.toLocaleString();
+        message.createdAt = receivedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       } else {
         console.error('Invalid Date:', dateToUse);
         message.createdAt = 'Date not available'; // Fallback display
@@ -125,7 +125,7 @@ function ChannelRight({ selectedUser, userData, room }) {
                  
                   <div className="username">{msg.user}</div>
                   <div className="message">{msg.text}</div>
-                  <div className="timestamp">{new Date(msg.createdAt).toLocaleTimeString()}</div>
+                  <div className="timestamp">{msg.createdAt}</div>
                 </div>
               ))
             ) : (
