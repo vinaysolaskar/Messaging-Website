@@ -21,7 +21,7 @@ const io = new Server(server, {
 
 app.use(cors({
   origin: 'http://localhost:3001', // Adjust as needed
-  methods: ['GET', 'POST']
+  methods: ['GET', 'POST', 'DELETE']
 }));
 
 app.use(express.json()); // This will parse JSON bodies
@@ -68,22 +68,22 @@ io.on('connection', (socket) => {
       senderId: socket.id,
       createdAt: timestamp, 
     });    
-  
+    
     try {
       const savedMessage = await newMessage.save();
       console.log('Message saved to MongoDB:', savedMessage);
-  
+    
       io.to(message.room).emit('message', {
+        _id: savedMessage._id,
         user: savedMessage.username,
         text: savedMessage.text,
         room: savedMessage.room,
-        createdAt: savedMessage.createdAt // Use toISOString to format date
+        createdAt: savedMessage.createdAt
       });
     } catch (err) {
       console.error('Error saving message to MongoDB:', err);
     }
   });
-  
   
   socket.on('leaveRoom', (room) => {
     socket.leave(room);
@@ -93,6 +93,22 @@ io.on('connection', (socket) => {
     // Handle user disconnect
   });
 });
+
+// Add this route for deleting a message
+app.delete('/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await Message.findByIdAndUpdate(id, { text: 'This message was deleted' });
+    if (!result) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+    io.emit('messageDeleted', id); // Notify clients about the message deletion
+    res.status(200).json({ message: 'Message deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting message:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}); 
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

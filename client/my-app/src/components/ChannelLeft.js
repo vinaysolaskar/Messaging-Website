@@ -121,7 +121,7 @@ function ChannelLeft({ onSelectUser, userData }) {
   return (
     <div className='AppChannelWrapperLeft'>
       {staticChannelHeaders.map((header, index) => (
-        <h4 key={index}>{header}</h4>
+        <h4 key={index} className='headerDm'>{header}</h4>
       ))}
 
       <div>

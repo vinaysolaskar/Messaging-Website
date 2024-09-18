@@ -16,11 +16,10 @@ body {
 
 /* Left Channel Styles */
 .AppChannelWrapperLeft {
-  /* width: 25%; */
   background-color: #fff;
   border-right: 1px solid #ddd;
   overflow-y: auto;
-  padding: 10px;
+  padding: 10px 5px 0;
   box-sizing: border-box;
 }
 
@@ -38,7 +37,7 @@ body {
 .logout-button {
   position: fixed;
   top: 20px;
-  right: 8%;
+  right: 10%;
   padding: 10px 20px;
   background-color: #f44336;
   color: white;
@@ -73,22 +72,30 @@ body {
   border-radius: 8px;
   max-width: 80%;
   word-break: break-word;
-  position: relative;
+  display: flex;
+  justify-content: space-between; /* Align content and delete button */
+  align-items: center; /* Center align items vertically */
+}
+
+/* Message Content Styles */
+.message-content {
+  flex: 1; /* Allow the content to take up available space */
   display: flex;
   flex-direction: column;
+  margin-right: 10px; /* Space between message content and delete button */
 }
 
 /* Message Sent by User */
 .myMessage {
   background-color: #d0f0c0; /* Light green */
-  align-self: flex-start;
+  align-self: flex-start; /* Align to the left */
   text-align: right;
 }
 
 /* Message Received from Others */
 .userMessage {
   background-color: #f0f0f0; /* Light grey */
-  align-self: flex-end;
+  align-self: flex-end; /* Align to the right */
   text-align: left;
 }
 
@@ -96,16 +103,39 @@ body {
 .message-item .username {
   font-weight: bold;
   margin-bottom: 0.2rem;
+  text-align: left;
 }
 
 .message-item .message {
   margin-bottom: 0.2rem;
+  text-align: left;
 }
 
 .message-item .timestamp {
   font-size: 0.7em;
   color: #888;
-  text-align: right;
+  text-align: right; /* Align timestamp to the right */
+}
+
+.delete-btn {
+  background-color: #f44336; /* Red color */
+  color: white; /* Text color */
+  border: none;
+  border-radius: 50%; /* Circular shape */
+  padding: 10px; /* Increased padding for a larger button */
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s; /* Added transform for scaling effect */
+  width: 30px; /* Fixed width for circular shape */
+  height: 30px; /* Fixed height for circular shape */
+  display: flex; /* Flexbox to center icon */
+  align-items: center; /* Center icon vertically */
+  justify-content: center; /* Center icon horizontally */
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f; /* Darker red on hover */
+  transform: scale(1.1); /* Darker red on hover */
 }
 
 /* Form and Input Styles */
@@ -175,23 +205,17 @@ body {
   flex-direction: column;
   gap: 0;
   margin: 0;
-  padding: 15px 20px;
+  line-height: 0.3;
+  /* padding: 10px 10px; */
   border-bottom: 1px solid #ddd;
 }
 
-h2{
+.headerDm {
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+h2 {
   margin-left: 10%;
-}
-
-.delete-messages-button {
-  margin-top: 10px;
-  background-color: red;
-  color: white;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-}
-
-.delete-messages-button:hover {
-  background-color: darkred;
 }
