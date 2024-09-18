@@ -30,6 +30,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.static(path.join(__dirname, '../client/my-app/public')));
 
+// Inside your Express server file
+app.get('/groupform', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/my-app/public', 'groupform.html'));
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/my-app/public', 'index.html'));
 });

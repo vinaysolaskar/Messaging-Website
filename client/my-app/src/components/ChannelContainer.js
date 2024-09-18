@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import ChannelLeft from './ChannelLeft';
-import ChannelRight from './ChannelRight';
+import ChannelLeft from './Direct-Message/ChannelLeft.js';
+import ChannelRight from './Direct-Message/ChannelRight.js';
 import socket from './socket';
 
 function ChannelContainer({ userData, room, onLogout, onRoomChange }) {

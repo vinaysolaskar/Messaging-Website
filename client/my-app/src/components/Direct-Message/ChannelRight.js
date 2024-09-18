@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import socket from './socket';
+import socket from '../socket';
 import axios from 'axios';
 import { FaTrash } from 'react-icons/fa'; // Import Font Awesome Trash icon
 
