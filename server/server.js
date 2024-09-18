@@ -21,7 +21,7 @@ const io = new Server(server, {
 
 app.use(cors({
   origin: 'http://localhost:3001', // Adjust as needed
-  methods: ['GET', 'POST', 'DELETE']
+  methods: ['GET', 'POST']
 }));
 
 app.use(express.json()); // This will parse JSON bodies
@@ -59,36 +59,32 @@ io.on('connection', (socket) => {
     console.log('Received message on server:', message);
     const timestamp = new Date().toISOString();
     console.log('Generated timestamp:', timestamp);
-  
+    
     const newMessage = new Message({
       username: message.user,
       text: message.text,
       room: message.room,
       target: message.target || 'all',
       senderId: socket.id,
+      createdAt: timestamp, 
     });    
   
     try {
       const savedMessage = await newMessage.save();
       console.log('Message saved to MongoDB:', savedMessage);
   
-      // // Check if createdAt is a valid date before sending it
-      // const createdAt = savedMessage.createdAt;
-      // console.log('CreatedAt from DB:', createdAt);
-  
-      // Ensure the date is being emitted as a valid ISO string
       io.to(message.room).emit('message', {
         user: savedMessage.username,
         text: savedMessage.text,
         room: savedMessage.room,
-        createdAt: new Date().toISOString() // Use toISOString to format date
+        createdAt: savedMessage.createdAt // Use toISOString to format date
       });
     } catch (err) {
       console.error('Error saving message to MongoDB:', err);
     }
   });
   
-
+  
   socket.on('leaveRoom', (room) => {
     socket.leave(room);
   });
@@ -96,25 +92,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     // Handle user disconnect
   });
-});
-
-app.delete('/api/messages', async (req, res) => {
-  const { room } = req.body;
-  if (!room) {
-    return res.status(400).json({ error: 'Room is required' });
-  }
-
-  try {
-    await Message.deleteMany({ room });
-    console.log('Deleted messages for room:', room);
-    res.status(200).json({ message: 'Messages deleted successfully' });
-    
-    // Notify clients about message deletion
-    io.to(room).emit('messagesDeleted');
-  } catch (err) {
-    console.error('Error deleting messages:', err);
-    res.status(500).json({ error: 'Failed to delete messages' });
-  }
 });
 
 const PORT = process.env.PORT || 3000;

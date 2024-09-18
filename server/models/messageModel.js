@@ -6,7 +6,8 @@ const messageSchema = new mongoose.Schema({
   room: String,
   target: { type: String, default: 'all' },
   senderId: String,
-}, { timestamps: true });
+  createdAt: { type: Date, default: Date.now }
+});
 
 const Message = mongoose.model('Message', messageSchema);
 

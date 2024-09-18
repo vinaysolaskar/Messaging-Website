@@ -15,10 +15,11 @@ function ChannelRight({ selectedUser, userData, room }) {
       setMessages([]);
 
       socket.on('previousMessages', (previousMessages) => {
-        console.log('Received previous messages:', previousMessages);
+        // console.log('Received previous messages:', previousMessages);
         setMessages(previousMessages.map(msg => ({
           ...msg,
-          user: msg.user === userData?.username ? 'Me' : selectedUser?.name || 'User'
+          user: msg.user === userData?.username ? 'Me' : selectedUser?.name || 'User',
+          createdAt: new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         })));
       });
 
@@ -41,7 +42,7 @@ function ChannelRight({ selectedUser, userData, room }) {
       console.log('Received message on client:', message);
       console.log('Raw date:', message.createdAt);
   
-      const dateToUse = message.createdAt || new Date().toISOString();;
+      const dateToUse = message.createdAt || new Date().toISOString();
       console.log('Date to use:', dateToUse);
       const receivedDate = new Date(dateToUse);
   
@@ -73,8 +74,7 @@ function ChannelRight({ selectedUser, userData, room }) {
       socket.off('message', handleMessage);
     };
   }, [room, userData, selectedUser, messages]); // Dependencies that affect the useEffect
-    
-
+  
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (input.trim() && room && userData) {
@@ -103,15 +103,6 @@ function ChannelRight({ selectedUser, userData, room }) {
     }
   };
 
-  const handleDeleteMessages = async () => {
-    try {
-      await axios.delete('/api/messages', { data: { room } });
-      console.log('Messages deletion request sent');
-    } catch (error) {
-      console.error('Error deleting messages:', error);
-    }
-  };
-
   return (
     <div className='AppChannelWrapperRight'>
       {selectedUser ? (
@@ -121,8 +112,6 @@ function ChannelRight({ selectedUser, userData, room }) {
             {messages.length > 0 ? (
               messages.map((msg, index) => (
                 <div key={index} className={`message-item ${msg.user === 'Me' ? 'myMessage' : 'userMessage'}`}>
-                {console.log('msg', msg)}
-                 
                   <div className="username">{msg.user}</div>
                   <div className="message">{msg.text}</div>
                   <div className="timestamp">{msg.createdAt}</div>
@@ -142,7 +131,6 @@ function ChannelRight({ selectedUser, userData, room }) {
                 <button type='submit'>Send</button>
               </form>
             </div>
-            <button className='delete-messages-button' onClick={handleDeleteMessages}>Delete Previous Chats</button>
           </div>
         </>
       ) : (
