@@ -1,7 +1,8 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import socket from '../socket';
 
 // Static data
-const staticChannelHeaders = ['Announcements', 'Sections', 'Direct Messages'];
+const staticChannelHeaders = ['Announcements', 'Direct Messages'];
 const staticChannelDMUserMapping = [
   {
     "channelId": "576315",
@@ -103,35 +104,106 @@ const staticChannelDMUserMapping = [
   }
 ];
 
-function ChannelLeft({ onSelectUser, userData }) {
-  // Check if userData is defined before accessing its properties
+function ChannelLeft({ onSelectUser, onSelectGroup, userData }) {
   const [filteredChannelDMUserMapping, setFilteredChannelDMUserMapping] = useState([]);
+  const [showCreateGroupForm, setShowCreateGroupForm] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupEmails, setGroupEmails] = useState('');
+  const [groups, setGroups] = useState([]);
+
+  useEffect(() => {
+    // Request groups from the server when the component mounts
+    socket.emit('requestGroups');
+  
+    const handleGroupsUpdated = (updatedGroups) => {
+      console.log('Groups updated received:', updatedGroups);
+      setGroups(updatedGroups);
+    };
+  
+    socket.on('groupsUpdated', handleGroupsUpdated);
+  
+    // Cleanup listener on unmount
+    return () => {
+      socket.off('groupsUpdated', handleGroupsUpdated);
+    };
+  }, []);
+  
 
   useEffect(() => {
     const userEmail = userData?.email?.trim();
-  
     const filtered = staticChannelDMUserMapping.filter(item => {
       const itemEmail = item.memberDetails.email?.trim();
       return itemEmail !== userEmail;
     });
-  
     setFilteredChannelDMUserMapping(filtered);
   }, [userData]);
 
+  const handleCreateGroup = () => {
+    const emailsArray = groupEmails.split(',').map(email => email.trim()).filter(email => email);
+    const newGroup = { id: `group${Date.now()}`, name: groupName, members: emailsArray }; // Use a unique ID
+
+    const validMembers = staticChannelDMUserMapping.filter(item =>
+      emailsArray.includes(item.memberDetails.email.trim())
+    );
+
+    if (validMembers.length > 0) {
+      socket.emit('createGroup', newGroup, (createdGroup) => {
+        console.log("Group created successfully:", createdGroup);
+
+        // Update groups state with the created group
+        setGroups(prevGroups => [...prevGroups, createdGroup]);
+
+        // Reset form inputs
+        setGroupName('');
+        setGroupEmails('');
+        setShowCreateGroupForm(false);
+      });
+    } else {
+      alert('No valid members found for the group.');
+    }
+  };
+
   return (
     <div className='AppChannelWrapperLeft'>
-      {staticChannelHeaders.map((header, index) => (
-        <h4 key={index} className='headerDm'>{header}</h4>
-      ))}
-
+      <h4 className='headerDm'>{staticChannelHeaders[0]}</h4>
+      <h4 onClick={() => setShowCreateGroupForm(!showCreateGroupForm)} style={{ cursor: 'pointer' }}>
+        Sections {showCreateGroupForm ? '-' : '+'}
+      </h4>
+      {showCreateGroupForm && (
+        <div className="createGroupForm">
+          <input
+            type="text"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            placeholder="Group Name"
+            className="groupInput"
+          />
+          <input
+            type="text"
+            value={groupEmails}
+            onChange={(e) => setGroupEmails(e.target.value)}
+            placeholder="Enter emails separated by commas"
+            className="groupInput"
+          />
+          <button onClick={handleCreateGroup} className="createGroupButton">Create Group</button>
+        </div>
+      )}
+      <div>
+        {groups.filter(group => group.members.includes(userData.email)).map((group) => (
+          <div key={group.id} className='groupCard' onClick={() => onSelectGroup(group)}>
+            <p><b>{group.name}</b></p>
+          </div>
+        ))}
+      </div>
+      <h4 className='headerDm'>{staticChannelHeaders[1]}</h4>
       <div>
         {filteredChannelDMUserMapping.map((item, index) => (
           <div
             key={index}
             className='memberCardDm'
             onClick={() => {
-              // console.log('User selected:', item.memberDetails);
-              onSelectUser(item.memberDetails)
+              console.log("Selected user:", item.memberDetails);
+              onSelectUser(item.memberDetails);
             }}
           >
             <p><b>{item.memberDetails.name}</b></p>
@@ -144,5 +216,4 @@ function ChannelLeft({ onSelectUser, userData }) {
   );
 }
 
-export default ChannelLeft;
-
+export default ChannelLeft; 

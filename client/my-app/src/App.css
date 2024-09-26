@@ -21,6 +21,7 @@ body {
   overflow-y: auto;
   padding: 10px 5px 0;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Right Channel Styles */
@@ -114,7 +115,7 @@ body {
 .message-item .timestamp {
   font-size: 0.7em;
   color: #888;
-  text-align: right; /* Align timestamp to the right */
+  text-align: left; /* Align timestamp to the right */
 }
 
 .delete-btn {
@@ -262,4 +263,35 @@ h2 {
 .success {
   color: green;
   margin-top: 10px;
+}
+
+.createGroupForm {
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  margin-top: 10px; /* Space above the form */
+}
+
+.groupInput {
+  margin-bottom: 10px; /* Space between input fields */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  border-bottom: 1px solid #ddd;
+}
+
+.groupCard {
+  border-bottom: 1px solid #ddd;
+}
+
+.createGroupButton {
+  padding: 8px;
+  background-color: #007bff; /* Example button color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.createGroupButton:hover {
+  background-color: #0056b3; /* Darken on hover */
 }

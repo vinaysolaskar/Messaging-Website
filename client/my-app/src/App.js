@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ChannelContainer from './components/ChannelContainer';
+import GroupContainer from './components/GroupContainer';
 import Login from './components/Login';
 import './App.css';
 import io from 'socket.io-client';
@@ -72,12 +73,18 @@ function App() {
       {!isLoggedIn ? (
         <Login onLogin={handleLogin} />
       ) : (
-        <ChannelContainer 
-          userData={userData} 
-          room={room}
-          onLogout={handleLogout}
-          onRoomChange={handleRoomChange}
-        />
+        <>
+          <ChannelContainer 
+            userData={userData} 
+            room={room}
+            onLogout={handleLogout}
+            onRoomChange={handleRoomChange}
+          />
+          {/* <GroupContainer
+            userData={userData}
+            onLogout={handleLogout}
+          /> */}
+        </>
       )}
     </div>
   );
