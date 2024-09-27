@@ -25,29 +25,26 @@ function ChannelContainer({ userData, room, onLogout, onRoomChange }) {
   useEffect(() => {
     if (userData && userData.email) {
       socket.emit('registerEmail', userData.email);
-      console.log(`Registered email: ${userData.email}`);
     }
   }, [userData]);
 
   const handleSelectUser = (user) => {
     setSelectedUser(user);
     localStorage.setItem('selectedUser', JSON.stringify(user));
-
-    // Create room ID based on both users' emails
     const newRoom = getRoomId(userData.email, user.email);
     localStorage.setItem('currentRoom', newRoom);
-    onRoomChange(newRoom); // Notify the parent to change the room
+    onRoomChange(newRoom);
   };
 
   const getRoomId = (selectedEmail, userEmail) => {
     const emails = [selectedEmail, userEmail].sort();
-    return `room_${emails[0]}_${emails[1]}`; // Create a unique room ID
+    return `room_${emails[0]}_${emails[1]}`;
   };
 
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
     setSelectedUser(null);
-    onRoomChange(group.id); // Join the group room
+    onRoomChange(group.id);
   };
 
   return (

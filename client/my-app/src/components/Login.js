@@ -7,7 +7,6 @@ function Login({ onLogin }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Call the onLogin callback with user data
     onLogin({ username, phone, email });
   };
 

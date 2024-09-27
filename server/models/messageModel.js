@@ -8,7 +8,7 @@ const messageSchema = new mongoose.Schema({
   target: { type: String, default: 'all' },
   senderId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' }, // Reference to Group
+  groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
   deleted: { type: Boolean, default: false }
 });
 

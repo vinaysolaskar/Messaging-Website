@@ -22,26 +22,19 @@ const io = new Server(server, {
 });
 
 app.use(cors({
-  origin: 'http://localhost:3001', // Adjust as needed
+  origin: 'http://localhost:3001',
   methods: ['GET', 'POST', 'DELETE']
 }));
 
-app.use(express.json()); // This will parse JSON bodies
-
+app.use(express.json()); 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.static(path.join(__dirname, '../client/my-app/public')));
-
-// Serve HTML files
-app.get('/groupform', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/my-app/public', 'groupform.html'));
-});
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/my-app/public', 'index.html'));
 });
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -51,40 +44,35 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error:', err);
 });
 
-// Track socket IDs by email
 const emailToSocketId = {};
-
-// Socket.io logic
 io.on('connection', (socket) => {
 
   socket.on('requestGroups', async () => {
     try {
-      const groups = await Group.find(); // Always fetch latest groups
-      // console.log('groups are: ', groups);
+      const groups = await Group.find();
       socket.emit('groupsUpdated', groups);
     } catch (err) {
       console.error('Error fetching groups:', err);
-      socket.emit('groupsUpdated', []); // Send empty array on error
+      socket.emit('groupsUpdated', []); 
     }
   });
 
-  // Register user email with socket
   socket.on('registerEmail', (email) => {
     emailToSocketId[email] = socket.id;
   });
 
   socket.on('joinRoom', async (room) => {
     socket.join(room);
-    const previousMessages = await Message.find({ room, deleted: false }).sort({ createdAt: 1 }).exec();
-    // console.log('previousMessages', previousMessages);
+    const previousMessages = await Message.find({ room }).sort({ createdAt: 1 }).exec();
+    console.log('Previous messages for room:', room, previousMessages);
     socket.emit('previousMessages', previousMessages.map(msg => ({
       ...msg.toObject(),
-      user: msg.username
+      user: msg.username,
+      isDeleted: msg.deleted,
     })));
-  });
+  });  
 
   socket.on('sendMessage', async (message) => {
-    // console.log('Received message on server:', message);
     const timestamp = new Date().toISOString();
     const newMessage = new Message({  
       username: message.user,
@@ -98,7 +86,6 @@ io.on('connection', (socket) => {
 
     try {
       const savedMessage = await newMessage.save();
-      // console.log('Message saved to MongoDB:', savedMessage);
       io.to(message.roomId).emit('message', {
         _id: savedMessage._id,
         user: savedMessage.username,
@@ -117,44 +104,40 @@ io.on('connection', (socket) => {
   });
 
   socket.on('createGroup', async (group, callback) => {
-    // console.log('group:', group);
     const newGroup = new Group({
-      id: uuidv4(), // Generate a consistent group ID
+      id: uuidv4(),
       name: group.name,
       members: group.members,
     });
     try {
       const savedGroup = await newGroup.save();
-      // console.log('New group created and saved to MongoDB:', savedGroup);
-      // Fetch all groups from MongoDB and send the updated list
-
-      // Emit the created group back to the creator
       callback(savedGroup);
-
       const allGroups = await Group.find();
-      io.emit('groupsUpdated', allGroups); // Notify clients
-      // callback(savedGroup); // Return created group
+      io.emit('groupsUpdated', allGroups);
     } catch (err) {
       console.error('Error saving group to MongoDB:', err);
-      callback(null); // Notify client of failure
+      callback(null); 
     }
   });
 
   socket.on('joinGroup', async (groupId) => {
-    const groups = await loadGroups(); // Always fetch latest groups
+    const groups = await loadGroups(); 
     const group = groups.find(g => g.id === groupId);
     if (group) {
       socket.join(groupId);
-      const messageFound = await Message.find({ room: groupId }).exec();
-      socket.emit('previousGroupMessages', messageFound);
+      const messageFound = await Message.find({  room: groupId }).exec();
+      console.log('Previous messages for group:', groupId, messageFound);
+      socket.emit('previousGroupMessages', messageFound.map(msg => ({
+        ...msg.toObject(),
+        isDeleted: msg.deleted, 
+      })));
     } else {
       console.error('Group not found:', groupId);
     }
   });
 
   socket.on('sendGroupMessage', async (message) => {
-    // console.log('Received group message:', message);
-    const group = await Group.findOne({ id: message.roomId }); // Find group by ID
+    const group = await Group.findOne({ id: message.roomId }); 
   
     if (!group) {
       console.error('Group not found:', message.roomId);
@@ -174,9 +157,6 @@ io.on('connection', (socket) => {
   
       try {
         await newMessage.save();
-        // console.log('Group message saved:', newMessage);
-  
-        // Emit the new message to the specific group room
         io.to(group.id).emit('groupMessage', {
           _id: newMessage._id,
           user: newMessage.username,
@@ -199,7 +179,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    // Clean up email to socket mapping
     Object.keys(emailToSocketId).forEach(email => {
       if (emailToSocketId[email] === socket.id) {
         delete emailToSocketId[email];
@@ -211,17 +190,15 @@ io.on('connection', (socket) => {
 app.delete('/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Attempting to delete message with ID:', id); // Log the ID
     const deletedMessage = await Message.findById(id);
     if (!deletedMessage) {
-      console.warn('Message not found:', id); // More specific warning
+      console.warn('Message not found:', id); 
       return res.status(404).json({ message: 'Message not found' });
     }
     
-    deletedMessage.deleted = true; // Mark as deleted
+    deletedMessage.deleted = true; 
     await deletedMessage.save();
 
-    // Notify clients about the deletion
     const deletionNotice = {
       deletedMessageId: id,
       user: deletedMessage.username,
@@ -244,8 +221,7 @@ app.delete('/messages/:id', async (req, res) => {
 const loadGroups = async () => {
   try {
     const savedGroups = await Group.find();
-    // console.log('Loaded groups from MongoDB:', savedGroups);
-    return savedGroups; // Return the loaded groups
+    return savedGroups;
   } catch (err) {
     console.error('Error loading groups from MongoDB:', err);
     return [];
@@ -256,5 +232,5 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, async() => {
   console.log(`Server running at http://localhost:${PORT}`);
   const initialGroups = await loadGroups();
-  io.emit('groupsUpdated', initialGroups); // Emit groups to all clients
+  io.emit('groupsUpdated', initialGroups);
 });

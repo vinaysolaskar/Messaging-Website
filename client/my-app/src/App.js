@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ChannelContainer from './components/ChannelContainer';
-import GroupContainer from './components/GroupContainer';
 import Login from './components/Login';
 import './App.css';
 import io from 'socket.io-client';

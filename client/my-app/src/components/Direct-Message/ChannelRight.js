@@ -11,7 +11,7 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
 
     if (selectedUser) {
       roomId = getRoomId(userData.email, selectedUser.email);
-      socket.emit('joinRoom', roomId); // Join the user chat
+      socket.emit('joinRoom', roomId); 
 
       socket.on('previousMessages', (previousMessages) => {
         setMessages(previousMessages);
@@ -23,12 +23,10 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
 
       socket.on('messageDeleted', (deletionNotice) => {
         setMessages((prev) => {
-          // Find the index of the deleted message
           const index = prev.findIndex(msg => msg._id === deletionNotice.deletedMessageId);
           if (index !== -1) {
-            // Create a new message object for the deletion notice
             const deleteMessage = {
-              _id: deletionNotice.deletedMessageId, // Keep the ID for key
+              _id: deletionNotice.deletedMessageId,
               user: deletionNotice.user,
               text: deletionNotice.text,
               createdAt: deletionNotice.createdAt,
@@ -37,12 +35,11 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
               room: deletionNotice.room,
               email: deletionNotice.email,
             };
-            // Replace the deleted message with the notice
             const updatedMessages = [...prev];
             updatedMessages[index] = deleteMessage;
             return updatedMessages;
           }
-          return prev; // Return original if not found
+          return prev; 
         });
       });
 
@@ -54,7 +51,7 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
       };
     } else if (selectedGroup) {
       roomId = selectedGroup.id;
-      socket.emit('joinGroup', roomId); // Join the group chat
+      socket.emit('joinGroup', roomId); 
 
       socket.on('previousGroupMessages', (previousMessages) => {
         setMessages(previousMessages);
@@ -66,24 +63,20 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
 
       socket.on('messageDeleted', (deletionNotice) => {
         setMessages((prev) => {
-          const index = prev.findIndex(msg => msg._id === deletionNotice.deleteMessageId);
-          // console.log('index', index);
+          const index = prev.findIndex(msg => msg._id === deletionNotice.deletedMessageId);
           if (index !== -1) {
             const deleteMessage = {
               _id: deletionNotice.deletedMessageId,
               user: deletionNotice.user,
               text: deletionNotice.text,
+              isDeleted: true,
               groupId: deletionNotice.groupId,
               room: deletionNotice.room,
               email: deletionNotice.email,
-              createdAt: deletionNotice.createdAt,
-              isDeleted: true
+              createdAt: deletionNotice.createdAt              
             };
-            // console.log('deletedMessage', deletedMessage);
             const updatedMessages = [...prev];
-            updatedMessages[index] = deletionNotice;
-            // console.log('Previous Messages:', prev);
-            // console.log('updatedMsgs:', updatedMessages);
+            updatedMessages[index] = deleteMessage;
             return updatedMessages;
           }
           console.warn('Message not found for deletion:', deletionNotice.deletedMessageId);
@@ -110,24 +103,21 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
         roomId: selectedUser ? getRoomId(userData.email, selectedUser.email) : selectedGroup.id,
       };
       if (selectedUser) {
-        socket.emit('sendMessage', message); // Send user message
+        socket.emit('sendMessage', message);
       } else if (selectedGroup) {
-        socket.emit('sendGroupMessage', message); // Send group message
+        socket.emit('sendGroupMessage', message); 
       }
       setInput('');
     }
   };
 
   const handleDeleteMessage = async (messageId) => {
-    console.log('Attempting to delete message with ID:', messageId);
-    console.log('Current messages:', messages); // Log current messages
     try {
       const response = await fetch(`http://localhost:3000/messages/${messageId}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        // setMessages((prevMessages) => prevMessages.filter(msg => msg._id !== messageId));
         socket.emit('messageDeleted', { deletedMessageId: messageId });
       } else {
         const errorData = await response.json();
@@ -151,13 +141,12 @@ function ChannelRight({ selectedUser, selectedGroup, userData }) {
             {selectedUser ? `Chat with ${selectedUser.name}` : `Group Chat: ${selectedGroup.name}`}
           </h2>
           <div className='chatWindow'>
-            {/* {console.log('Messages state before rendering:', messages)} */}
             {messages.map((msg) => (
               <div key={msg._id} className={`message-item ${msg.email === userData.email ? 'myMessage' : 'userMessage'}`}>
                 <div className='message-content'>
                   <strong className='username'>{msg.user || msg.username}</strong>
-                  {msg.isDeleted ? ( // Check for the isDeleted flag
-                    <p className='message deleted'>{msg.text}</p> // Show deletion notice
+                  {msg.isDeleted ? (
+                    <p className='message deleted'>This message was Deleted</p> 
                   ) : (
                     <p className='message'>{msg.text}</p>
                   )}

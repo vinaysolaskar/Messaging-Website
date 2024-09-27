@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import socket from '../socket';
 
-// Static data
 const staticChannelHeaders = ['Announcements', 'Direct Messages'];
 const staticChannelDMUserMapping = [
   {
@@ -112,17 +111,11 @@ function ChannelLeft({ onSelectUser, onSelectGroup, userData }) {
   const [groups, setGroups] = useState([]);
 
   useEffect(() => {
-    // Request groups from the server when the component mounts
     socket.emit('requestGroups');
-  
     const handleGroupsUpdated = (updatedGroups) => {
-      console.log('Groups updated received:', updatedGroups);
       setGroups(updatedGroups);
     };
-  
     socket.on('groupsUpdated', handleGroupsUpdated);
-  
-    // Cleanup listener on unmount
     return () => {
       socket.off('groupsUpdated', handleGroupsUpdated);
     };
@@ -140,20 +133,14 @@ function ChannelLeft({ onSelectUser, onSelectGroup, userData }) {
 
   const handleCreateGroup = () => {
     const emailsArray = groupEmails.split(',').map(email => email.trim()).filter(email => email);
-    const newGroup = { id: `group${Date.now()}`, name: groupName, members: emailsArray }; // Use a unique ID
-
+    const newGroup = { id: `group${Date.now()}`, name: groupName, members: emailsArray };
     const validMembers = staticChannelDMUserMapping.filter(item =>
       emailsArray.includes(item.memberDetails.email.trim())
     );
 
     if (validMembers.length > 0) {
       socket.emit('createGroup', newGroup, (createdGroup) => {
-        console.log("Group created successfully:", createdGroup);
-
-        // Update groups state with the created group
         setGroups(prevGroups => [...prevGroups, createdGroup]);
-
-        // Reset form inputs
         setGroupName('');
         setGroupEmails('');
         setShowCreateGroupForm(false);
@@ -202,7 +189,6 @@ function ChannelLeft({ onSelectUser, onSelectGroup, userData }) {
             key={index}
             className='memberCardDm'
             onClick={() => {
-              console.log("Selected user:", item.memberDetails);
               onSelectUser(item.memberDetails);
             }}
           >
