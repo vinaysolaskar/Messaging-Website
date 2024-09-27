@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # Node modules
 node_modules/
 
 # Environment variables
+=======
+node_modules/
+
+>>>>>>> 7ac5a39a790a3daa1c904cfbcec252ad5448f1d9
 .env
